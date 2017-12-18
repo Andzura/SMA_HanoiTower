@@ -12,8 +12,12 @@ public class Board{
     private List<Agent>[] stacks;
     private int nbMove = 0;
     private final Object lock = new Object();
+    private int nextToPlace = 0;
+    private int targetStack = 2;
+    private boolean collab;
 
-    public Board() {
+    public Board(boolean collab) {
+        this.collab = collab;
         stacks = (ArrayList<Agent>[])new ArrayList[NBSTACK];
         for(int i = 0; i < NBSTACK; i++){
             stacks[i] = new ArrayList<>();
@@ -97,5 +101,30 @@ public class Board{
             System.out.println("Stack "+ i +" : " + stacks[i].toString());
         }
         System.out.println("=============");
+    }
+
+    public int getNextToPlace() {
+        return nextToPlace;
+    }
+
+    public void setNextToPlace(int nextToPlace) {
+        this.nextToPlace = nextToPlace;
+    }
+
+    public int getTargetStack() {
+        return targetStack;
+    }
+
+    public void setTargetStack(int targetStack) {
+        this.targetStack = targetStack;
+    }
+
+    public boolean isCollab() {
+        return collab;
+    }
+
+    public void notifyPlaced(Agent agent) {
+        if(agent.getKey() == nextToPlace)
+            nextToPlace++;
     }
 }

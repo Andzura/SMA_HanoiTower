@@ -8,6 +8,7 @@ public class Agent extends Thread{
     private int key;
     private int currentStack;
     private boolean pushed;
+    private boolean placed;
     //private Model.Agent topNeighbor;
     //private Model.Agent bottomNeighbor;
 
@@ -15,6 +16,7 @@ public class Agent extends Thread{
         this.board = board;
         this.key = key;
         this.pushed = false;
+        this.placed = false;
     }
 
     public int getKey() {
@@ -37,8 +39,24 @@ public class Agent extends Thread{
         this.currentStack = currentStack;
     }
 
+    public boolean isPlaced() {
+        return placed;
+    }
+
+    public void setPlaced(boolean placed) {
+        this.placed = placed;
+    }
+
     @Override
     public void run(){
+        if(board.isCollab()){
+            runCollab();
+        }else{
+            runRandom();
+        }
+    }
+
+    public void runRandom(){
         Random rand = new Random();
         while(!board.checkWin()){
             if(pushed){
@@ -56,12 +74,44 @@ public class Agent extends Thread{
                 }
             }
             try {
-                Thread.sleep(0);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
         System.out.println("STOPPED");
+    }
+
+    public void runCollab(){
+        Random rand = new Random();
+        while(!placed) {
+            if (pushed) {
+                if (board.getTopNeighbor(this) == null) {
+                    int stack2Move = 0;
+                    do {
+                        stack2Move = (rand.nextInt(Board.NBSTACK - 1) + 1 + currentStack) % Board.NBSTACK;
+                    } while (stack2Move == board.getTargetStack());
+                    board.move(this, stack2Move);
+                    this.pushed = false;
+                } else {
+                    board.push(this);
+                }
+            }
+            else if(board.getNextToPlace() == this.key){
+                if (board.getTopNeighbor(this) != null) {
+                    board.push(this);
+                } else {
+                    board.move(this, board.getTargetStack());
+                    this.placed = true;
+                    board.notifyPlaced(this);
+                }
+            }
+            try {
+                Thread.sleep(0);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
