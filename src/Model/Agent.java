@@ -56,7 +56,7 @@ public class Agent extends Thread{
                 }
             }
             try {
-                Thread.sleep(0);
+                sleep(0);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

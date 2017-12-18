@@ -73,7 +73,6 @@ public class Board{
             stacks[dest].add(a);
             a.setCurrentStack(dest);
             nbMove++;
-            this.print();
         }
     }
 
@@ -88,14 +87,15 @@ public class Board{
         for(Agent a : agents){
             a.start();
         }
-        this.print();
     }
 
-    public void print(){
-        System.out.println("move "+nbMove+"=======");
-        for(int i = 0; i < NBSTACK; i++) {
-            System.out.println("Stack "+ i +" : " + stacks[i].toString());
+    public void print() {
+        synchronized (lock) {
+            System.out.println("move : " + nbMove);
+            for (int i = 0; i < NBSTACK; i++) {
+                System.out.println("Stack " + i + " : " + stacks[i].toString());
+            }
+            System.out.println("=============");
         }
-        System.out.println("=============");
     }
 }
