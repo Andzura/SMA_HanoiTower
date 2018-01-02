@@ -6,18 +6,23 @@ import java.util.List;
 
 public class Board{
 
-    public static final int NBSTACK = 3;
+    public static int NBSTACK = 3;
 
     private List<Agent> agents;
     private List<Agent>[] stacks;
     private int nbMove = 0;
     private final Object lock = new Object();
+    // 0 = random, 1 = collaboratif SUPERVISE
+    private int strategie;
+    private boolean afficherChaqueMouvement;
+
+    // Variables pour le mode supervisé
     private int nextToPlace = 0;
     private int targetStack = 2;
-    private boolean collab;
 
-    public Board(boolean collab) {
-        this.collab = collab;
+    public Board(int strategie, boolean afficherChaqueMouvement) {
+        this.strategie = strategie;
+        this.afficherChaqueMouvement = afficherChaqueMouvement;
         stacks = (ArrayList<Agent>[])new ArrayList[NBSTACK];
         for(int i = 0; i < NBSTACK; i++){
             stacks[i] = new ArrayList<>();
@@ -78,6 +83,8 @@ public class Board{
             a.setCurrentStack(dest);
             nbMove++;
         }
+        if (afficherChaqueMouvement)
+            print();
     }
 
     public void push(Agent a){
@@ -88,6 +95,7 @@ public class Board{
 
     public void init(){
         Collections.shuffle(stacks[0]);
+        print();
         for(Agent a : agents){
             a.start();
         }
@@ -95,7 +103,7 @@ public class Board{
 
     public void print() {
         synchronized (lock) {
-            System.out.println("move : " + nbMove);
+            System.out.println("move : " + nbMove+" ("+getStringMode()+")");
             for (int i = 0; i < NBSTACK; i++) {
                 System.out.println("Stack " + i + " : " + stacks[i].toString());
             }
@@ -119,12 +127,26 @@ public class Board{
         this.targetStack = targetStack;
     }
 
-    public boolean isCollab() {
-        return collab;
+    public boolean isRandom(){
+        return strategie == 0;
+    }
+
+    public boolean isCollabSupervise() {
+        return strategie == 1;
     }
 
     public void notifyPlaced(Agent agent) {
         if(agent.getKey() == nextToPlace)
             nextToPlace++;
+    }
+
+    public String getStringMode(){
+        if (isRandom())
+            return "random";
+        else if (isCollabSupervise())
+            return "collaboratif supervisé";
+
+        else
+            return "inconnu";
     }
 }

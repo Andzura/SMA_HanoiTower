@@ -9,8 +9,6 @@ public class Agent extends Thread{
     private int currentStack;
     private boolean pushed;
     private boolean placed;
-    //private Model.Agent topNeighbor;
-    //private Model.Agent bottomNeighbor;
 
     public Agent(Board board, int key) {
         this.board = board;
@@ -49,13 +47,14 @@ public class Agent extends Thread{
 
     @Override
     public void run(){
-        if(board.isCollab()){
-            runCollab();
-        }else{
+        if(board.isRandom()){
             runRandom();
+        }else if(board.isCollabSupervise()){
+            runCollabSupervise();
         }
     }
 
+    // Les agents se déplacent de manières aléatoires si ils ont été poussés
     public void runRandom(){
         Random rand = new Random();
         while(!board.checkWin()){
@@ -82,7 +81,10 @@ public class Agent extends Thread{
         System.out.println("STOPPED");
     }
 
-    public void runCollab(){
+
+    
+    // Les agents interrogent le plateau pour savoir comment agir, comportement supervisé et non réactif
+    public void runCollabSupervise(){
         Random rand = new Random();
         while(!placed) {
             if (pushed) {

@@ -18,16 +18,22 @@ public class ConsolDisplay extends Thread{
 
     @Override
     public void run(){
+        pause();
         while(!board.checkWin()){
             board.print();
-            try {
-                sleep(tempo);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            pause();
         }
         System.out.println("Fini en : "+getTime(new Date().getTime() - dateDebut.getTime()));
         board.print();
+    }
+
+    // Pour éviter le try/catch à chaque fois
+    public void pause(){
+        try {
+            sleep(tempo);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     // Renvoi le temps au format h min s ms
