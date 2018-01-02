@@ -1,11 +1,8 @@
 package Model;
 
-import javafx.util.Pair;
+import java.util.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import static java.lang.StrictMath.min;
 
 public class Board{
 
@@ -42,12 +39,10 @@ public class Board{
     public Agent getTopNeighbor(Agent a){
         int currentStack = a.getCurrentStack();
         int i = stacks[currentStack].indexOf(a);
-        synchronized (lock) {
-            if (i + 1 >= stacks[currentStack].size()) {
-                return null;
-            }
-            return stacks[currentStack].get(i + 1);
+        if (i + 1 >= stacks[currentStack].size()) {
+            return null;
         }
+        return stacks[currentStack].get(i + 1);
     }
 
     public Agent getBottomNeighbor(Agent a){
@@ -76,24 +71,46 @@ public class Board{
         return true;
     }
 
-    public synchronized void move(Agent a, int dest){
+    public void move(Agent a, int dest){
         int currStack = a.getCurrentStack();
         if(this.getTopNeighbor(a) != null)
             return;
-        synchronized (lock) {
-            stacks[currStack].remove(a);
-            stacks[dest].add(a);
-            a.setCurrentStack(dest);
-            nbMove++;
-        }
+        stacks[currStack].remove(a);
+        stacks[dest].add(a);
+        a.setCurrentStack(dest);
+        nbMove++;
         if (afficherChaqueMouvement)
             print();
     }
 
     public void push(Agent a){
         Agent a2Push = this.getTopNeighbor(a);
-        if(a2Push != null)
+        if (a2Push != null) {
             a2Push.setPushed(true);
+        }
+    }
+
+    public void pushWithId(Agent a){
+        Agent a2Push = this.getTopNeighbor(a);
+        if (a2Push != null) {
+            int idPousseur;
+            // Si le pousseur n'a pas été poussé auparavant, il transmet son id
+            if (!a.isPushed())
+                idPousseur = a.getKey();
+                // Sinon il transmet le min entre son ID et celui du pousseur
+            else {
+                idPousseur = min(a.getKey(), a.getPushedBy());
+            }
+            // Si l'agent au dessus n'avait pas encore été poussé, on lui transmet son nouvel ID de pousseur et on le pousse
+            if (!a2Push.isPushed()) {
+                a2Push.setPushedBy(idPousseur);
+                a2Push.setPushed(true);
+            }
+            // Sinon il prend le minimum entre son dernier pousseur et le pousseur actuel
+            else {
+                a2Push.setPushedBy(min(idPousseur, a2Push.getPushedBy()));
+            }
+        }
     }
 
     public void init(){
@@ -106,30 +123,26 @@ public class Board{
 
     public ArrayList<Agent> getTopAgents(){
         ArrayList<Agent> ret = new ArrayList<Agent>();
-        synchronized (lock) {
-            for (int i = 0; i < NBSTACK; i++) {
-                if (stacks[i].size() > 0)
-                    ret.add(stacks[i].get(stacks[i].size() - 1));
-            }
-            return ret;
+        for (int i = 0; i < NBSTACK; i++) {
+            if (stacks[i].size() > 0)
+                ret.add(stacks[i].get(stacks[i].size() - 1));
         }
+        return ret;
     }
 
     // Renvoi l'id d'une pile vide, ou -1 sinon
     public ArrayList<Integer> getListStackVide(){
         ArrayList<Integer> ret = new ArrayList<Integer>();
-        synchronized (lock) {
-            for (int i = 0; i < NBSTACK; i++) {
-                if (stacks[i].size() == 0)
-                    ret.add(i);
-            }
-            return ret;
+        for (int i = 0; i < NBSTACK; i++) {
+            if (stacks[i].size() == 0)
+                ret.add(i);
         }
+        return ret;
     }
 
     public void print() {
         synchronized (lock) {
-            System.out.println("move : " + nbMove+" ("+getStringMode()+")");
+            System.out.println("move : " + nbMove + " (" + getStringMode() + ")");
             for (int i = 0; i < NBSTACK; i++) {
                 System.out.println("Stack " + i + " : " + stacks[i].toString());
             }
@@ -181,5 +194,9 @@ public class Board{
 
         else
             return "inconnu";
+    }
+
+    public Object getLock(){
+        return lock;
     }
 }

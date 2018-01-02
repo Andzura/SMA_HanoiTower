@@ -7,10 +7,12 @@ public class Main {
     public static void main(String[] args){
         // Nombre d'agents
         int nbAgents = 25;
+        // Temps de pause max entre chaques mouvements
+        Agent.TEMPS_MAX_TEMPO = 0;
         // 0 = random, 1 = collaboratif SUPERVISE, 2 = collaboratif réactif
         int strategie = 2;
         // Fréquence d'actualisation de l'affichage en ms, 0 ou négatif = affiche tous les mouvements
-        int freqAffichage = 000;
+        int freqAffichage = 0;
         // Nombre de piles
         //Board.NBSTACK = 5;
 
