@@ -1,7 +1,10 @@
 package Model;
 
+import javafx.util.Pair;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 public class Board{
@@ -40,7 +43,7 @@ public class Board{
         int currentStack = a.getCurrentStack();
         int i = stacks[currentStack].indexOf(a);
         synchronized (lock) {
-            if (i + 1 == stacks[currentStack].size()) {
+            if (i + 1 >= stacks[currentStack].size()) {
                 return null;
             }
             return stacks[currentStack].get(i + 1);
@@ -101,6 +104,29 @@ public class Board{
         }
     }
 
+    public ArrayList<Agent> getTopAgents(){
+        ArrayList<Agent> ret = new ArrayList<Agent>();
+        synchronized (lock) {
+            for (int i = 0; i < NBSTACK; i++) {
+                if (stacks[i].size() > 0)
+                    ret.add(stacks[i].get(stacks[i].size() - 1));
+            }
+            return ret;
+        }
+    }
+
+    // Renvoi l'id d'une pile vide, ou -1 sinon
+    public ArrayList<Integer> getListStackVide(){
+        ArrayList<Integer> ret = new ArrayList<Integer>();
+        synchronized (lock) {
+            for (int i = 0; i < NBSTACK; i++) {
+                if (stacks[i].size() == 0)
+                    ret.add(i);
+            }
+            return ret;
+        }
+    }
+
     public void print() {
         synchronized (lock) {
             System.out.println("move : " + nbMove+" ("+getStringMode()+")");
@@ -135,6 +161,11 @@ public class Board{
         return strategie == 1;
     }
 
+    public boolean isCollabReactif(){
+        return strategie == 2;
+    }
+
+    // Pour le mode collaboratif supervisé
     public void notifyPlaced(Agent agent) {
         if(agent.getKey() == nextToPlace)
             nextToPlace++;
@@ -145,6 +176,8 @@ public class Board{
             return "random";
         else if (isCollabSupervise())
             return "collaboratif supervisé";
+        else if (isCollabReactif())
+            return "collaboratif réactif";
 
         else
             return "inconnu";
