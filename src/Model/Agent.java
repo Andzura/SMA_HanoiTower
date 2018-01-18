@@ -12,7 +12,6 @@ public class Agent extends Thread{
     private int currentStack;
     private boolean pushed;
     private boolean placed;
-    private int pushedBy;
 
     public Agent(Board board, int key) {
         this.board = board;
@@ -47,14 +46,6 @@ public class Agent extends Thread{
 
     public void setPlaced(boolean placed) {
         this.placed = placed;
-    }
-
-    public int getPushedBy() {
-        return pushedBy;
-    }
-
-    public void setPushedBy(int pushedBy) {
-        this.pushedBy = pushedBy;
     }
 
     private void pause(int tempsMax){
@@ -127,7 +118,7 @@ public class Agent extends Thread{
                     }
                     // Sinon on pousse
                     else
-                        board.pushWithId(this);
+                        board.push(this);
                 }
                 pause(TEMPS_MAX_TEMPO);
             }
@@ -165,7 +156,6 @@ public class Agent extends Thread{
                                 int dest = getMeilleurStackCollab(choix);
                                 if (dest != currentStack){
                                     board.move(this, dest);
-                                    this.pushedBy =this.getKey();
                                     this.pushed = false;
                                 }
                             }
@@ -177,7 +167,7 @@ public class Agent extends Thread{
                         }
                         // Si on est mal placé on pousse
                         else {
-                            board.pushWithId(this);
+                            board.push(this);
                         }
                     }
                 }

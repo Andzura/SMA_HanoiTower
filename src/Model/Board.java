@@ -90,29 +90,6 @@ public class Board{
         }
     }
 
-    public void pushWithId(Agent a){
-        Agent a2Push = this.getTopNeighbor(a);
-        if (a2Push != null) {
-            int idPousseur;
-            // Si le pousseur n'a pas été poussé auparavant, il transmet son id
-            if (!a.isPushed())
-                idPousseur = a.getKey();
-                // Sinon il transmet le min entre son ID et celui du pousseur
-            else {
-                idPousseur = min(a.getKey(), a.getPushedBy());
-            }
-            // Si l'agent au dessus n'avait pas encore été poussé, on lui transmet son nouvel ID de pousseur et on le pousse
-            if (!a2Push.isPushed()) {
-                a2Push.setPushedBy(idPousseur);
-                a2Push.setPushed(true);
-            }
-            // Sinon il prend le minimum entre son dernier pousseur et le pousseur actuel
-            else {
-                a2Push.setPushedBy(min(idPousseur, a2Push.getPushedBy()));
-            }
-        }
-    }
-
     public void init(){
         Collections.shuffle(stacks[0]);
         print();
