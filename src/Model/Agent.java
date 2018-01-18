@@ -12,12 +12,14 @@ public class Agent extends Thread{
     private int currentStack;
     private boolean pushed;
     private boolean placed;
+    private int lowestUnder;
 
     public Agent(Board board, int key) {
         this.board = board;
         this.key = key;
         this.pushed = false;
         this.placed = false;
+        this.lowestUnder = -1;
     }
 
     public int getKey() {
@@ -46,6 +48,10 @@ public class Agent extends Thread{
 
     public void setPlaced(boolean placed) {
         this.placed = placed;
+    }
+
+    public int getLowestUnder() {
+        return lowestUnder;
     }
 
     private void pause(int tempsMax){
@@ -106,7 +112,7 @@ public class Agent extends Thread{
                     // Si on est en bas (et personne au dessus), on est bien placé
                     if (board.getBottomNeighbor(this) == null && board.getTopNeighbor(this) == null)
                         placed = true;
-                        // Si on est en haut, on se met dans une colonne vide (et si il n'y en a pas on attend...)
+                    // Si on est en haut, on se met dans une colonne vide (et si il n'y en a pas on attend...)
                     else if (board.getTopNeighbor(this) == null) {
                         ArrayList<Integer> stacksVides = board.getListStackVide();
                         if (stacksVides.size() > 0) {
@@ -129,6 +135,10 @@ public class Agent extends Thread{
                     // pour éviter d'appeler les fonctions 10 fois
                     Agent bottom = board.getBottomNeighbor(this);
                     Agent top = board.getTopNeighbor(this);
+
+                    // On regarde si celui d'en dessous connait le plus petit en dessous de lui
+                    // Si c'est le cas le plus petit en dessous de nous = le min entre cette valeur et nous
+                    updateLowestUnder(bottom);
 
                     // On regarde si on peut se placer
                     boolean aBouge = false;
@@ -157,6 +167,7 @@ public class Agent extends Thread{
                                 if (dest != currentStack){
                                     board.move(this, dest);
                                     this.pushed = false;
+                                    this.lowestUnder = -1;
                                 }
                             }
                         }
@@ -187,6 +198,19 @@ public class Agent extends Thread{
         // On peut s'éteindre car on ne sert plus à rien
     }
 
+    public void updateLowestUnder(Agent bottom){
+        // Si on ne connait toujours pas le plus petit en dessous de nous, on regarde si le voisin du dessous le connait
+        if (lowestUnder == -1) {
+            if (bottom == null) {
+                lowestUnder = key;
+            }
+            // Le voisin d'en dessous connait la plus petite clé en dessous de lui
+            else if (bottom.getLowestUnder() > -1) {
+                lowestUnder = min(key, bottom.getLowestUnder());
+            }
+        }
+    }
+
 
     //Renvoi le meilleur Stack sur lequel se déplacé en mode Collab
     //un agent qui est au en haut d'un stack peut communiquer avec les autres qui sont aussi en haut d'un stack
@@ -200,7 +224,7 @@ public class Agent extends Thread{
         ArrayList<Integer> vides = board.getListStackVide();
         boolean atLeastOnePlaced = false;
         for(Agent a : choix){
-            if(a.getLowestinStack() > this.getLowestinStack())
+            if(a.getLowestUnder() > this.getLowestUnder())
                 return a.getCurrentStack();
             if(a.isPlaced())
                 atLeastOnePlaced = true;
