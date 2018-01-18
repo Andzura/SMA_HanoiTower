@@ -6,7 +6,7 @@ public class Main {
 
     public static void main(String[] args){
         // Nombre d'agents
-        int nbAgents = 100;
+        int nbAgents = 500;
         // Temps de pause max entre chaques mouvements
         Agent.TEMPS_MAX_TEMPO = 0;
         // 0 = random, 1 = collaboratif SUPERVISE, 2 = collaboratif réactif
