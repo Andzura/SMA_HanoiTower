@@ -154,7 +154,9 @@ public class Agent extends Thread{
                             if (dest != currentStack){
                                 board.move(this, dest);
                                 this.pushed = false;
+                                // On regarde si on peut déjà connaitre le plus petit agent en dessous de nous dans la tour
                                 this.lowestUnder = -1;
+                                updateLowestUnder(board.getBottomNeighbor(this));
                             }
                         }
                     }
