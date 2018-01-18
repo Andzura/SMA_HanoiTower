@@ -106,7 +106,7 @@ public class Agent extends Thread{
     // Si il est tout en haut d'un stack, il connait le dessus de tous les stacks
     public void runCollabReactif(){
         ArrayList<Agent> choix;
-        // Temps que l'agent n'est pas à sa place
+        // Tant que l'agent n'est pas à sa place
         // ( = en bas pour le 0, au dessus du numéro inférieur qui est placé pour les autres)
         while(!placed) {
             // Si on est l'agent 0 on a un traitement particulier (pour initialiser la pile)
@@ -163,8 +163,9 @@ public class Agent extends Thread{
                                 choix = board.getTopAgents();
                                 choix.remove(this);
                                 int dest = getMeilleurStackCollab(choix);
-                                if (dest != currentStack) {
+                                if (dest != currentStack){
                                     board.move(this, dest);
+                                    this.pushedBy =this.getKey();
                                     this.pushed = false;
                                 }
                             }
@@ -197,55 +198,30 @@ public class Agent extends Thread{
     }
 
 
-    // Parcours la liste des agents en haut de stacks et renvoi le stack du plus petit agent plus gros nous
-    // ou de l'agent sur lequel on doit être si celui-ci est bien placé
-    // Si aucun agent plus petit que nous, on se met sur le plus gros
-    // Si un stack vide, on va dedans
-    // On ne va pas sur un agent poussé, sauf si on est poussé par un plus gros
+    //Renvoi le meilleur Stack sur lequel se déplacé en mode Collab
+    //un agent qui est au en haut d'un stack peut communiquer avec les autres qui sont aussi en haut d'un stack
+    //il demande donc a chacun d'eux quel est l'agent le plus important dans leur stack
+    //si un stack possède un agent le plus important moins important que le stack courant, il peut se déplacer dessus
+    //sinon si il reste des stack vides, ou un stack vide et que le stack "final" existe ( donc si il existe un agent bien placé)
+    // l'agent peut se déplacer dans un stack vide
+    //sinon il reste ou il est.
     public int getMeilleurStackCollab(ArrayList<Agent> choix){
-        ArrayList<Agent> nonPoussesNonPlaces = new ArrayList<Agent>();
-        Agent maxPoussePar = null;
-        boolean agentBienPlace = false;
-
-        for (Agent a : choix){
-            // Si un agent est bien placé
-            if (a.isPlaced()){
-                agentBienPlace = true;
-                // et si l'agent est bien placé et celui sur lequel on doit être, on se met dessus
-                if ( a.getKey() == key - 1)
-                    return a.getCurrentStack();
-            }
-
-            // Sinon on met à jour le meilleur choix si on trouve mieux
-            // On va d'abord essayer d'aller sur un agent non poussé
-            else if (!a.isPushed() && !a.isPlaced()) {
-                Collections.shuffle(nonPoussesNonPlaces);
-                nonPoussesNonPlaces.add(a);
-            }
-            // Sinon si l'agent a été poussé, on peut quand même allé sur lui si un agent plus gros nous a poussé
-            else if (a.isPushed()) {
-                int pousseur = min(a.getPushedBy(), a.getKey());
-                if (maxPoussePar == null || pousseur > min(maxPoussePar.getKey(), maxPoussePar.getPushedBy())){
-                    maxPoussePar = a;
-                }
-            }
-        }
-        // Si 2 stacks sont vides, ou un stack vide + un agent bien placé, on va dans le vide
+        // Si 2 stacks sont vides
         ArrayList<Integer> vides = board.getListStackVide();
-        if (vides.size() > 1 || (agentBienPlace && vides.size() ==1)) {
+        boolean atLeastOnePlaced = false;
+        for(Agent a : choix){
+            if(a.getLowestinStack() > this.getLowestinStack())
+                return a.getCurrentStack();
+            if(a.isPlaced())
+                atLeastOnePlaced = true;
+        }
+
+        if (vides.size() > 1 || (atLeastOnePlaced && vides.size() > 0)) {
             Collections.shuffle(vides);
             return vides.get(0);
         }
-        // Si un agent n'est pas poussé on va dessus
-        if (nonPoussesNonPlaces.size() > 0){
-            return nonPoussesNonPlaces.get(0).getCurrentStack();
-        }
-        // Si on est poussé par un gros et qu'un autre est poussé par un moins gros, on se met sur lui
-        else if (pushed && maxPoussePar != null && min(maxPoussePar.getKey(), maxPoussePar.getPushedBy()) > pushedBy)
-            return maxPoussePar.getCurrentStack();
-        // Sinon on reste où on est
-        else
-            return currentStack;
+
+        return this.getCurrentStack();
     }
 
 
@@ -280,6 +256,14 @@ public class Agent extends Thread{
         }
     }
 
+    //renvoi l'agent le plus important du stack on communiquant recursivement avec ses voisins inférieurs.
+    public int getLowestinStack(){
+        Agent a = board.getBottomNeighbor(this);
+        if(a == null){
+            return this.getKey();
+        }
+        return min(a.getLowestinStack(), this.getKey());
+    }
     @Override
     public String toString() {
         return "" + key ;
